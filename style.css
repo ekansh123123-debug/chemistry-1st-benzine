@@ -1,14 +1,4 @@
-/* Base Resets & Typography */
-:root {
-    --bg-color: #f8fafc;
-    --card-bg: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --border: #e2e8f0;
-}
-
+/* Dark, Sleek Enterprise Theme */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -16,141 +6,107 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    line-height: 1.6;
+    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    color: #f8fafc;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    height: 100vh;
     display: flex;
     justify-content: center;
-    padding: 2rem;
+    align-items: center;
+    overflow: hidden;
 }
 
-.dashboard-container {
-    max-width: 1000px;
-    width: 100%;
-}
-
-/* Header */
-.header {
+.animation-container {
     text-align: center;
-    margin-bottom: 3rem;
+    position: relative;
+    width: 100%;
+    max-width: 600px;
 }
 
-.header h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
+/* Typography & Text Overlay */
+.text-overlay {
+    margin-bottom: 2rem;
+    height: 80px; /* Fixed height to prevent layout shift */
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: 1px;
     margin-bottom: 0.5rem;
-    color: var(--text-main);
+    text-transform: uppercase;
+    color: #e2e8f0;
+    transition: color 0.3s ease;
 }
 
-.header p {
-    color: var(--text-muted);
+p {
     font-size: 1.1rem;
+    color: #94a3b8;
 }
 
-/* Layout */
-.content-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    align-items: center;
-}
-
-/* Cards */
-.visual-card, .controls-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    border: 1px solid var(--border);
-}
-
-.visual-card {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
+/* SVG Styling */
 #benzene-svg {
     width: 100%;
-    max-width: 350px;
+    max-width: 400px;
+    filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
 }
 
-/* SVG Animations */
-.bond-layer, #resonance-ring {
-    transition: opacity 0.6s ease-in-out;
+/* Base Hexagon */
+#sigma-bonds {
+    fill: none;
+    stroke: #475569;
+    stroke-width: 8;
+    stroke-linejoin: round;
+    transition: stroke 1s ease;
 }
 
-/* Controls */
-.controls-card h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+/* Pi Bonds (Double Bonds) */
+.pi-bonds line {
+    stroke-width: 8;
+    stroke-linecap: round;
 }
 
-.button-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
+#kekule-a line {
+    stroke: #38bdf8; /* Neon Blue */
+    filter: url(#neon-glow);
 }
 
-button {
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text-main);
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
+#kekule-b line {
+    stroke: #f472b6; /* Neon Pink */
+    filter: url(#neon-glow);
 }
 
-button:hover {
-    background: #f1f5f9;
+/* Resonance Ring */
+#resonance-ring {
+    fill: none;
+    stroke: #34d399; /* Neon Green */
+    stroke-width: 10;
+    stroke-dasharray: 20 15;
+    filter: url(#neon-glow);
 }
 
-button.active {
-    border-color: var(--primary);
-    background: #eef2ff;
-    color: var(--primary);
+/* Utility classes manipulated by JavaScript */
+.hidden {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
 
-button.primary-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    text-align: center;
-    margin-top: 1rem;
-    font-weight: 600;
+.visible {
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
 }
 
-button.primary-btn:hover {
-    background: var(--primary-hover);
+.fast-transition {
+    transition: opacity 0.15s ease-in-out !important;
 }
 
-/* Info Box */
-.info-box {
-    background: #f8fafc;
-    padding: 1.5rem;
-    border-radius: 8px;
-    border-left: 4px solid var(--primary);
+/* Spin animation for the final hybrid stage */
+.spin {
+    animation: rotateRing 4s linear infinite;
+    transform-origin: center;
 }
 
-.info-box h3 {
-    margin-bottom: 0.5rem;
-    font-size: 1.2rem;
-}
-
-.info-box p {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-}
-
-/* Responsiveness */
-@media (max-width: 768px) {
-    .content-grid {
-        grid-template-columns: 1fr;
-    }
+@keyframes rotateRing {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
