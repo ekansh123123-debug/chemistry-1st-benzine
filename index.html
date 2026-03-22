@@ -13,7 +13,7 @@
             <p id="stage-desc">Three isolated ethyne molecules approach.</p>
         </div>
 
-        <svg id="reaction-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <svg id="reaction-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <filter id="neon-cyan" x="-50%" y="-50%" width="200%" height="200%">
                     <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
@@ -38,38 +38,44 @@
                 </filter>
                 
                 <radialGradient id="heat" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#ef4444" stop-opacity="0.2"/>
+                    <stop offset="0%" stop-color="#ef4444" stop-opacity="0.25"/>
                     <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
                 </radialGradient>
             </defs>
 
-            <circle id="heat-bg" cx="200" cy="200" r="180" fill="url(#heat)" class="hidden" />
+            <circle id="heat-bg" cx="250" cy="250" r="220" fill="url(#heat)" class="hidden" />
 
-            <g id="m1" class="molecule far-apart-1">
-                <line class="pi-bond outer-pi" x1="78.8" y1="130" x2="200" y2="60" transform="translate(-10, -17)" />
-                <line class="sigma-bond" x1="78.8" y1="130" x2="200" y2="60" />
-                <line class="pi-bond inner-pi" x1="78.8" y1="130" x2="200" y2="60" transform="translate(10, 17)" />
+            <g transform="rotate(0, 250, 250)">
+                <g class="molecule-slider far-apart">
+                    <line class="pi-bond outer-pi" x1="369" y1="190" x2="369" y2="310" />
+                    <line class="sigma-bond" x1="354" y1="190" x2="354" y2="310" />
+                    <line class="pi-bond inner-pi" x1="339" y1="190" x2="339" y2="310" />
+                </g>
             </g>
 
-            <g id="m2" class="molecule far-apart-2">
-                <line class="pi-bond outer-pi" x1="321.2" y1="130" x2="321.2" y2="270" transform="translate(20, 0)" />
-                <line class="sigma-bond" x1="321.2" y1="130" x2="321.2" y2="270" />
-                <line class="pi-bond inner-pi" x1="321.2" y1="130" x2="321.2" y2="270" transform="translate(-20, 0)" />
+            <g transform="rotate(120, 250, 250)">
+                <g class="molecule-slider far-apart">
+                    <line class="pi-bond outer-pi" x1="369" y1="190" x2="369" y2="310" />
+                    <line class="sigma-bond" x1="354" y1="190" x2="354" y2="310" />
+                    <line class="pi-bond inner-pi" x1="339" y1="190" x2="339" y2="310" />
+                </g>
             </g>
 
-            <g id="m3" class="molecule far-apart-3">
-                <line class="pi-bond outer-pi" x1="200" y1="340" x2="78.8" y2="270" transform="translate(-10, 17)" />
-                <line class="sigma-bond" x1="200" y1="340" x2="78.8" y2="270" />
-                <line class="pi-bond inner-pi" x1="200" y1="340" x2="78.8" y2="270" transform="translate(10, -17)" />
+            <g transform="rotate(240, 250, 250)">
+                <g class="molecule-slider far-apart">
+                    <line class="pi-bond outer-pi" x1="369" y1="190" x2="369" y2="310" />
+                    <line class="sigma-bond" x1="354" y1="190" x2="354" y2="310" />
+                    <line class="pi-bond inner-pi" x1="339" y1="190" x2="339" y2="310" />
+                </g>
             </g>
 
             <g id="new-bonds" class="hidden">
-                <line class="sigma-bond" x1="200" y1="60" x2="321.2" y2="130" />
-                <line class="sigma-bond" x1="321.2" y1="270" x2="200" y2="340" />
-                <line class="sigma-bond" x1="78.8" y1="270" x2="78.8" y2="130" />
+                <line class="sigma-bond" x1="354" y1="310" x2="250" y2="370" />
+                <line class="sigma-bond" x1="146" y1="310" x2="146" y2="190" />
+                <line class="sigma-bond" x1="250" y1="130" x2="354" y2="190" />
             </g>
 
-            <circle id="resonance-ring" class="hidden" cx="200" cy="200" r="95" />
+            <circle id="resonance-ring" class="hidden" cx="250" cy="250" r="80" />
         </svg>
     </div>
 
