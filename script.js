@@ -1,13 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
     const title = document.getElementById('stage-title');
     const desc = document.getElementById('stage-desc');
     const heatBg = document.getElementById('heat-bg');
     
-    // Molecules and Bonds
-    const m1 = document.getElementById('m1');
-    const m2 = document.getElementById('m2');
-    const m3 = document.getElementById('m3');
+    const molecules = document.querySelectorAll('.molecule-slider');
     const innerPiBonds = document.querySelectorAll('.inner-pi');
     const outerPiBonds = document.querySelectorAll('.outer-pi');
     const newBonds = document.getElementById('new-bonds');
@@ -20,66 +16,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function runReactionSequence() {
-        // Reset to initial state
-        m1.className.baseVal = 'molecule far-apart-1';
-        m2.className.baseVal = 'molecule far-apart-2';
-        m3.className.baseVal = 'molecule far-apart-3';
+        // Reset everything to starting Phase
+        molecules.forEach(m => m.className = 'molecule-slider far-apart');
+        innerPiBonds.forEach(bond => bond.classList.remove('hidden'));
+        outerPiBonds.forEach(bond => bond.classList.remove('hidden'));
         
-        innerPiBonds.forEach(bond => bond.style.opacity = 1);
-        outerPiBonds.forEach(bond => bond.style.opacity = 1);
-        
-        newBonds.classList.replace('visible', 'hidden');
-        resonanceRing.classList.replace('visible', 'hidden');
-        heatBg.classList.replace('visible', 'hidden');
+        newBonds.className = 'hidden';
+        resonanceRing.className = 'hidden';
+        heatBg.className = 'hidden';
         resonanceRing.classList.remove('spin');
 
         updateText("3C₂H₂ (Ethyne)", "Three isolated ethyne molecules approach.");
 
-        // Step 1: Heat applied, molecules drawn together (1.5s in)
+        // Phase 1: Heat and Compression
         setTimeout(() => {
             updateText("Red-Hot Iron Tube (873K)", "High heat and pressure force the molecules together.", "#ef4444");
-            heatBg.classList.replace('hidden', 'visible');
-            
-            // Slam molecules into hexagon formation
-            m1.className.baseVal = 'molecule together';
-            m2.className.baseVal = 'molecule together';
-            m3.className.baseVal = 'molecule together';
+            heatBg.className = 'visible';
+            molecules.forEach(m => m.className = 'molecule-slider together');
         }, 1500);
 
-        // Step 2: Reaction - Pi bonds break, new Sigma bonds form (4.5s in)
+        // Phase 2: Reaction - Pi bonds break, new Sigma bonds form
         setTimeout(() => {
             updateText("Cyclic Polymerization", "One pi bond from each triple bond breaks to connect the ring.", "#f472b6");
-            
-            // Inner Pi bonds fade out (breaking)
-            innerPiBonds.forEach(bond => bond.style.opacity = 0);
-            
-            // New Sigma bonds fade in (connecting)
-            newBonds.classList.replace('hidden', 'visible');
+            innerPiBonds.forEach(bond => bond.classList.add('hidden'));
+            newBonds.className = 'visible';
         }, 4500);
 
-        // Step 3: Benzene formed (Kekulé structure) (7s in)
+        // Phase 3: Kekulé Benzene is temporarily established
         setTimeout(() => {
-            updateText("Benzene Formed", "The Kekulé structure is temporarily established.", "#22d3ee");
-            heatBg.classList.replace('visible', 'hidden'); // Cool down
+            updateText("Benzene Formed", "A complete hexagon with alternating double bonds is established.", "#22d3ee");
+            heatBg.className = 'hidden'; // Cool down
         }, 7000);
 
-        // Step 4: Delocalization into Resonance Hybrid (9.5s in)
+        // Phase 4: Delocalization to true Resonance Hybrid
         setTimeout(() => {
-            updateText("Resonance Stabilization", "Electrons delocalize to form a highly stable pi ring.", "#10b981");
-            
-            // Remaining Pi bonds fade out as they delocalize
-            outerPiBonds.forEach(bond => bond.style.opacity = 0);
-            
-            // Green resonance ring spins up
-            resonanceRing.classList.replace('hidden', 'visible');
-            resonanceRing.classList.add('spin');
+            updateText("Resonance Stabilization", "Electrons delocalize to form a highly stable aromatic ring.", "#10b981");
+            outerPiBonds.forEach(bond => bond.classList.add('hidden'));
+            resonanceRing.className = 'visible spin';
 
-            // Loop the animation
+            // Loop animation automatically
             setTimeout(runReactionSequence, 8000); 
-
         }, 9500);
     }
 
-    // Start the reaction immediately
+    // Start immediately
     runReactionSequence();
 });
