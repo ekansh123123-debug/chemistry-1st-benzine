@@ -3,42 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Benzene Delocalization Animation</title>
+    <title>Benzene Formation Animation</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="animation-container">
         <div class="text-overlay">
-            <h1 id="stage-title">Forming Sigma Skeleton...</h1>
-            <p id="stage-desc">Carbon atoms bond to form the basic hexagonal shape.</p>
+            <h1 id="stage-title">3C₂H₂ (Ethyne)</h1>
+            <p id="stage-desc">Three isolated ethyne molecules approach.</p>
         </div>
 
-        <svg id="benzene-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <svg id="reaction-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="neon-cyan" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                <filter id="neon-pink" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                <filter id="neon-green" x="-50%" y="-50%" width="200%" height="200%">
                     <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
                     <feMerge>
                         <feMergeNode in="coloredBlur"/>
                         <feMergeNode in="SourceGraphic"/>
                     </feMerge>
                 </filter>
+                
+                <radialGradient id="heat" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#ef4444" stop-opacity="0.2"/>
+                    <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+                </radialGradient>
             </defs>
 
-            <polygon id="sigma-bonds" points="200,60 321.2,130 321.2,270 200,340 78.8,270 78.8,130" />
-            
-            <g id="kekule-a" class="pi-bonds">
-                <line x1="200" y1="95" x2="291" y2="147.5" />
-                <line x1="291" y1="252.5" x2="200" y2="305" />
-                <line x1="109" y1="252.5" x2="109" y2="147.5" />
+            <circle id="heat-bg" cx="200" cy="200" r="180" fill="url(#heat)" class="hidden" />
+
+            <g id="m1" class="molecule far-apart-1">
+                <line class="pi-bond outer-pi" x1="78.8" y1="130" x2="200" y2="60" transform="translate(-10, -17)" />
+                <line class="sigma-bond" x1="78.8" y1="130" x2="200" y2="60" />
+                <line class="pi-bond inner-pi" x1="78.8" y1="130" x2="200" y2="60" transform="translate(10, 17)" />
             </g>
 
-            <g id="kekule-b" class="pi-bonds">
-                <line x1="291" y1="147.5" x2="291" y2="252.5" />
-                <line x1="200" y1="305" x2="109" y2="252.5" />
-                <line x1="109" y1="147.5" x2="200" y2="95" />
+            <g id="m2" class="molecule far-apart-2">
+                <line class="pi-bond outer-pi" x1="321.2" y1="130" x2="321.2" y2="270" transform="translate(20, 0)" />
+                <line class="sigma-bond" x1="321.2" y1="130" x2="321.2" y2="270" />
+                <line class="pi-bond inner-pi" x1="321.2" y1="130" x2="321.2" y2="270" transform="translate(-20, 0)" />
             </g>
 
-            <circle id="resonance-ring" cx="200" cy="200" r="95" />
+            <g id="m3" class="molecule far-apart-3">
+                <line class="pi-bond outer-pi" x1="200" y1="340" x2="78.8" y2="270" transform="translate(-10, 17)" />
+                <line class="sigma-bond" x1="200" y1="340" x2="78.8" y2="270" />
+                <line class="pi-bond inner-pi" x1="200" y1="340" x2="78.8" y2="270" transform="translate(10, -17)" />
+            </g>
+
+            <g id="new-bonds" class="hidden">
+                <line class="sigma-bond" x1="200" y1="60" x2="321.2" y2="130" />
+                <line class="sigma-bond" x1="321.2" y1="270" x2="200" y2="340" />
+                <line class="sigma-bond" x1="78.8" y1="270" x2="78.8" y2="130" />
+            </g>
+
+            <circle id="resonance-ring" class="hidden" cx="200" cy="200" r="95" />
         </svg>
     </div>
 
