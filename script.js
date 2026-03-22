@@ -1,78 +1,75 @@
-// Data for the different stages of the animation
-const stagesData = {
-    'a': {
-        title: "Kekulé Structure A",
-        text: "Benzene consists of six carbon atoms joined in a planar hexagonal ring. In this classical Kekulé structure, alternating single and double bonds are shown.",
-        layers: { a: 1, b: 0, hybrid: 0 }
-    },
-    'b': {
-        title: "Kekulé Structure B",
-        text: "Because electrons are constantly moving, the double bonds can shift. This represents the second resonance structure. However, the bonds don't actually flip back and forth in reality.",
-        layers: { a: 0, b: 1, hybrid: 0 }
-    },
-    'hybrid': {
-        title: "Resonance Hybrid",
-        text: "In reality, the pi electrons are delocalized across all six carbon atoms. This forms a continuous electron cloud (often drawn as a circle), giving Benzene its unique chemical stability (aromaticity).",
-        layers: { a: 0, b: 0, hybrid: 1 }
-    }
-};
+document.addEventListener('DOMContentLoaded', () => {
+    // Grab all necessary DOM elements
+    const title = document.getElementById('stage-title');
+    const desc = document.getElementById('stage-desc');
+    const kekuleA = document.getElementById('kekule-a');
+    const kekuleB = document.getElementById('kekule-b');
+    const resonanceRing = document.getElementById('resonance-ring');
+    const sigmaBonds = document.getElementById('sigma-bonds');
 
-let autoPlayInterval = null;
-let currentAutoStep = 0;
-const sequence = ['a', 'b', 'a', 'b', 'hybrid']; // The order of the auto-play animation
-
-// Function to set the visual and textual stage
-function setStage(stageKey) {
-    const data = stagesData[stageKey];
-    
-    // Update SVG opacities
-    document.getElementById('kekule-a').style.opacity = data.layers.a;
-    document.getElementById('kekule-b').style.opacity = data.layers.b;
-    document.getElementById('resonance-ring').style.opacity = data.layers.hybrid;
-
-    // Update Text content
-    document.getElementById('info-title').innerText = data.title;
-    document.getElementById('info-text').innerText = data.text;
-
-    // Update Button Styles
-    document.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
-    if (document.getElementById(`btn-${stageKey}`)) {
-        document.getElementById(`btn-${stageKey}`).classList.add('active');
-    }
-}
-
-// Function to handle the auto-play animation
-function playAutoAnimation() {
-    const playBtn = document.getElementById('btn-play');
-    
-    // If already playing, stop it
-    if (autoPlayInterval) {
-        clearInterval(autoPlayInterval);
-        autoPlayInterval = null;
-        playBtn.innerText = "Play Animation";
-        playBtn.style.background = "var(--primary)";
-        return;
+    // Helper function to update text
+    function updateText(heading, description, color = "#e2e8f0") {
+        title.innerText = heading;
+        title.style.color = color;
+        desc.innerText = description;
     }
 
-    // Start playing
-    playBtn.innerText = "Stop Animation";
-    playBtn.style.background = "#ef4444"; // Red stop color
-    currentAutoStep = 0;
-    
-    // Immediately show first step
-    setStage(sequence[currentAutoStep]);
+    // The main cinematic sequence
+    function runAnimationSequence() {
+        // Reset state
+        kekuleA.className = 'pi-bonds hidden';
+        kekuleB.className = 'pi-bonds hidden';
+        resonanceRing.className = 'hidden';
+        sigmaBonds.style.stroke = "#475569";
 
-    // Loop through the sequence
-    autoPlayInterval = setInterval(() => {
-        currentAutoStep++;
-        if (currentAutoStep >= sequence.length) {
-            // Stop at the hybrid stage
-            clearInterval(autoPlayInterval);
-            autoPlayInterval = null;
-            playBtn.innerText = "Play Animation";
-            playBtn.style.background = "var(--primary)";
-            return;
-        }
-        setStage(sequence[currentAutoStep]);
-    }, 1200); // 1.2 seconds per transition
-}
+        // Step 1: Show Kekule A (1.5 seconds in)
+        setTimeout(() => {
+            updateText("Kekulé Structure 1", "Pi electrons form localized double bonds.", "#38bdf8");
+            kekuleA.className = 'pi-bonds visible';
+        }, 1500);
+
+        // Step 2: Shift to Kekule B (4 seconds in)
+        setTimeout(() => {
+            updateText("Kekulé Structure 2", "The double bonds shift to adjacent positions.", "#f472b6");
+            kekuleA.className = 'pi-bonds hidden';
+            kekuleB.className = 'pi-bonds visible';
+        }, 4000);
+
+        // Step 3: Rapid shifting / Delocalization (6.5 seconds in)
+        setTimeout(() => {
+            updateText("Electron Delocalization", "Electrons move rapidly, unable to be pinned down.", "#cbd5e1");
+            
+            // Apply fast transition classes
+            kekuleA.className = 'pi-bonds fast-transition';
+            kekuleB.className = 'pi-bonds fast-transition';
+
+            // Rapid toggle interval
+            let toggle = true;
+            let flashInterval = setInterval(() => {
+                kekuleA.style.opacity = toggle ? "1" : "0";
+                kekuleB.style.opacity = toggle ? "0" : "1";
+                toggle = !toggle;
+            }, 150); // Flash every 150ms
+
+            // Stop flashing and move to hybrid (9 seconds in)
+            setTimeout(() => {
+                clearInterval(flashInterval);
+                kekuleA.style.opacity = "0";
+                kekuleB.style.opacity = "0";
+                
+                // Final Step: Resonance Hybrid
+                updateText("Resonance Hybrid", "The true structure: a perfectly stable, delocalized pi ring.", "#34d399");
+                resonanceRing.className = 'visible spin';
+                sigmaBonds.style.stroke = "#334155"; // Dim the background skeleton
+                
+                // Loop the whole animation after viewing the hybrid for a few seconds
+                setTimeout(runAnimationSequence, 6000); 
+                
+            }, 2500);
+
+        }, 6500);
+    }
+
+    // Start the animation immediately upon load
+    runAnimationSequence();
+});
