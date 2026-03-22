@@ -1,75 +1,85 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Grab all necessary DOM elements
+    // DOM Elements
     const title = document.getElementById('stage-title');
     const desc = document.getElementById('stage-desc');
-    const kekuleA = document.getElementById('kekule-a');
-    const kekuleB = document.getElementById('kekule-b');
+    const heatBg = document.getElementById('heat-bg');
+    
+    // Molecules and Bonds
+    const m1 = document.getElementById('m1');
+    const m2 = document.getElementById('m2');
+    const m3 = document.getElementById('m3');
+    const innerPiBonds = document.querySelectorAll('.inner-pi');
+    const outerPiBonds = document.querySelectorAll('.outer-pi');
+    const newBonds = document.getElementById('new-bonds');
     const resonanceRing = document.getElementById('resonance-ring');
-    const sigmaBonds = document.getElementById('sigma-bonds');
 
-    // Helper function to update text
     function updateText(heading, description, color = "#e2e8f0") {
         title.innerText = heading;
         title.style.color = color;
         desc.innerText = description;
     }
 
-    // The main cinematic sequence
-    function runAnimationSequence() {
-        // Reset state
-        kekuleA.className = 'pi-bonds hidden';
-        kekuleB.className = 'pi-bonds hidden';
-        resonanceRing.className = 'hidden';
-        sigmaBonds.style.stroke = "#475569";
+    function runReactionSequence() {
+        // Reset to initial state
+        m1.className.baseVal = 'molecule far-apart-1';
+        m2.className.baseVal = 'molecule far-apart-2';
+        m3.className.baseVal = 'molecule far-apart-3';
+        
+        innerPiBonds.forEach(bond => bond.style.opacity = 1);
+        outerPiBonds.forEach(bond => bond.style.opacity = 1);
+        
+        newBonds.classList.replace('visible', 'hidden');
+        resonanceRing.classList.replace('visible', 'hidden');
+        heatBg.classList.replace('visible', 'hidden');
+        resonanceRing.classList.remove('spin');
 
-        // Step 1: Show Kekule A (1.5 seconds in)
+        updateText("3C₂H₂ (Ethyne)", "Three isolated ethyne molecules approach.");
+
+        // Step 1: Heat applied, molecules drawn together (1.5s in)
         setTimeout(() => {
-            updateText("Kekulé Structure 1", "Pi electrons form localized double bonds.", "#38bdf8");
-            kekuleA.className = 'pi-bonds visible';
+            updateText("Red-Hot Iron Tube (873K)", "High heat and pressure force the molecules together.", "#ef4444");
+            heatBg.classList.replace('hidden', 'visible');
+            
+            // Slam molecules into hexagon formation
+            m1.className.baseVal = 'molecule together';
+            m2.className.baseVal = 'molecule together';
+            m3.className.baseVal = 'molecule together';
         }, 1500);
 
-        // Step 2: Shift to Kekule B (4 seconds in)
+        // Step 2: Reaction - Pi bonds break, new Sigma bonds form (4.5s in)
         setTimeout(() => {
-            updateText("Kekulé Structure 2", "The double bonds shift to adjacent positions.", "#f472b6");
-            kekuleA.className = 'pi-bonds hidden';
-            kekuleB.className = 'pi-bonds visible';
-        }, 4000);
-
-        // Step 3: Rapid shifting / Delocalization (6.5 seconds in)
-        setTimeout(() => {
-            updateText("Electron Delocalization", "Electrons move rapidly, unable to be pinned down.", "#cbd5e1");
+            updateText("Cyclic Polymerization", "One pi bond from each triple bond breaks to connect the ring.", "#f472b6");
             
-            // Apply fast transition classes
-            kekuleA.className = 'pi-bonds fast-transition';
-            kekuleB.className = 'pi-bonds fast-transition';
+            // Inner Pi bonds fade out (breaking)
+            innerPiBonds.forEach(bond => bond.style.opacity = 0);
+            
+            // New Sigma bonds fade in (connecting)
+            newBonds.classList.replace('hidden', 'visible');
+        }, 4500);
 
-            // Rapid toggle interval
-            let toggle = true;
-            let flashInterval = setInterval(() => {
-                kekuleA.style.opacity = toggle ? "1" : "0";
-                kekuleB.style.opacity = toggle ? "0" : "1";
-                toggle = !toggle;
-            }, 150); // Flash every 150ms
+        // Step 3: Benzene formed (Kekulé structure) (7s in)
+        setTimeout(() => {
+            updateText("Benzene Formed", "The Kekulé structure is temporarily established.", "#22d3ee");
+            heatBg.classList.replace('visible', 'hidden'); // Cool down
+        }, 7000);
 
-            // Stop flashing and move to hybrid (9 seconds in)
-            setTimeout(() => {
-                clearInterval(flashInterval);
-                kekuleA.style.opacity = "0";
-                kekuleB.style.opacity = "0";
-                
-                // Final Step: Resonance Hybrid
-                updateText("Resonance Hybrid", "The true structure: a perfectly stable, delocalized pi ring.", "#34d399");
-                resonanceRing.className = 'visible spin';
-                sigmaBonds.style.stroke = "#334155"; // Dim the background skeleton
-                
-                // Loop the whole animation after viewing the hybrid for a few seconds
-                setTimeout(runAnimationSequence, 6000); 
-                
-            }, 2500);
+        // Step 4: Delocalization into Resonance Hybrid (9.5s in)
+        setTimeout(() => {
+            updateText("Resonance Stabilization", "Electrons delocalize to form a highly stable pi ring.", "#10b981");
+            
+            // Remaining Pi bonds fade out as they delocalize
+            outerPiBonds.forEach(bond => bond.style.opacity = 0);
+            
+            // Green resonance ring spins up
+            resonanceRing.classList.replace('hidden', 'visible');
+            resonanceRing.classList.add('spin');
 
-        }, 6500);
+            // Loop the animation
+            setTimeout(runReactionSequence, 8000); 
+
+        }, 9500);
     }
 
-    // Start the animation immediately upon load
-    runAnimationSequence();
+    // Start the reaction immediately
+    runReactionSequence();
 });
