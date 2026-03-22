@@ -1,4 +1,4 @@
-/* Dark, Sleek Enterprise Theme */
+/* Core Styling & Dark Theme */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -6,9 +6,9 @@
 }
 
 body {
-    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    background: #0f172a; /* Deep slate */
     color: #f8fafc;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -20,89 +20,91 @@ body {
     text-align: center;
     position: relative;
     width: 100%;
-    max-width: 600px;
+    max-width: 650px;
 }
 
-/* Typography & Text Overlay */
+/* Typography */
 .text-overlay {
     margin-bottom: 2rem;
-    height: 80px; /* Fixed height to prevent layout shift */
+    height: 85px; 
 }
 
 h1 {
-    font-size: 2rem;
-    font-weight: 600;
-    letter-spacing: 1px;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
     margin-bottom: 0.5rem;
     text-transform: uppercase;
     color: #e2e8f0;
-    transition: color 0.3s ease;
+    transition: color 0.4s ease;
 }
 
 p {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     color: #94a3b8;
+    transition: opacity 0.3s ease;
 }
 
-/* SVG Styling */
-#benzene-svg {
+/* SVG Elements */
+#reaction-svg {
     width: 100%;
-    max-width: 400px;
-    filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+    max-width: 450px;
+    filter: drop-shadow(0 0 15px rgba(0,0,0,0.6));
 }
 
-/* Base Hexagon */
-#sigma-bonds {
-    fill: none;
-    stroke: #475569;
-    stroke-width: 8;
-    stroke-linejoin: round;
-    transition: stroke 1s ease;
-}
-
-/* Pi Bonds (Double Bonds) */
-.pi-bonds line {
+/* Bond Styles */
+.sigma-bond {
+    stroke: #22d3ee; /* Neon Cyan */
     stroke-width: 8;
     stroke-linecap: round;
+    filter: url(#neon-cyan);
+    transition: opacity 0.5s ease;
 }
 
-#kekule-a line {
-    stroke: #38bdf8; /* Neon Blue */
-    filter: url(#neon-glow);
+.pi-bond {
+    stroke: #ec4899; /* Neon Pink */
+    stroke-width: 6;
+    stroke-linecap: round;
+    filter: url(#neon-pink);
+    transition: opacity 0.8s ease-in-out;
 }
 
-#kekule-b line {
-    stroke: #f472b6; /* Neon Pink */
-    filter: url(#neon-glow);
+/* Translation Classes for the Approach Animation */
+.molecule {
+    transition: transform 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.far-apart-1 { transform: translate(-45px, -45px); }
+.far-apart-2 { transform: translate(65px, 0px); }
+.far-apart-3 { transform: translate(-45px, 65px); }
+
+.together {
+    transform: translate(0, 0);
 }
 
 /* Resonance Ring */
 #resonance-ring {
     fill: none;
-    stroke: #34d399; /* Neon Green */
+    stroke: #10b981; /* Neon Green */
     stroke-width: 10;
     stroke-dasharray: 20 15;
-    filter: url(#neon-glow);
+    filter: url(#neon-green);
 }
 
-/* Utility classes manipulated by JavaScript */
+/* Utility State Classes */
 .hidden {
     opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 1s ease-in-out;
 }
 
 .visible {
     opacity: 1;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 1s ease-in-out;
 }
 
-.fast-transition {
-    transition: opacity 0.15s ease-in-out !important;
-}
-
-/* Spin animation for the final hybrid stage */
+/* Spin animation for the final stage */
 .spin {
-    animation: rotateRing 4s linear infinite;
+    animation: rotateRing 5s linear infinite;
     transform-origin: center;
 }
 
