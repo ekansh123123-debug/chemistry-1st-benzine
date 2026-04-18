@@ -24,7 +24,6 @@ camera.position.set(0, 10, 25);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-// Add post processing bloom effect visually by increasing exposure/lighting for realism
 renderer.toneMapping = THREE.ReinhardToneMapping;
 
 // Controls setup
@@ -34,27 +33,28 @@ controls.autoRotate = true;
 controls.autoRotateSpeed = 0.5;
 
 // Lighting setup
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
 
-const pointLight1 = new THREE.PointLight(0xff4500, 2, 50);
-pointLight1.position.set(5, 5, 5);
+const pointLight1 = new THREE.PointLight(0xffffff, 1.5, 50);
+pointLight1.position.set(10, 10, 10);
 scene.add(pointLight1);
 
-const pointLight2 = new THREE.PointLight(0xffa500, 1.5, 50);
-pointLight2.position.set(-5, -5, -5);
+const pointLight2 = new THREE.PointLight(0xffffff, 1.0, 50);
+pointLight2.position.set(-10, -10, -10);
 scene.add(pointLight2);
 
 // Molecular Modeling - Acetylene (C2H2)
-const atomMaterialCarbon = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.1 });
-const atomMaterialHydrogen = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.4, metalness: 0.1 });
-const bondMaterial = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.2, metalness: 0.6 });
+const atomMaterialCarbon = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.2 });
+const atomMaterialHydrogen = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, metalness: 0.1 });
+const bondMaterialCarbon = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.2 });
+const bondMaterialHydrogen = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, metalness: 0.1 });
 
 const carbonRadius = 0.6;
 const hydrogenRadius = 0.4;
 const bondRadius = 0.15;
-const ccBondLength = 1.2; // Triple bond length
-const chBondLength = 1.0; // Single bond length
+const ccBondLength = 1.6; // Slightly longer to fit 3 distinct parallel bonds
+const chBondLength = 1.2;
 
 function createAcetylene() {
     const molecule = new THREE.Group();
@@ -76,42 +76,58 @@ function createAcetylene() {
     h2.position.x = ccBondLength / 2 + chBondLength;
     molecule.add(h2);
 
-    // C-H Bonds
-    const chBondGeom = new THREE.CylinderGeometry(bondRadius, bondRadius, chBondLength, 16);
+    // C-H Bonds (Left side: H1 to C1)
+    const chHalfGeom = new THREE.CylinderGeometry(bondRadius, bondRadius, chBondLength / 2, 16);
 
-    const chBond1 = new THREE.Mesh(chBondGeom, bondMaterial);
-    chBond1.rotation.z = Math.PI / 2;
-    chBond1.position.x = -ccBondLength / 2 - chBondLength / 2;
-    molecule.add(chBond1);
+    // White half connected to H1
+    const chBond1White = new THREE.Mesh(chHalfGeom, bondMaterialHydrogen);
+    chBond1White.rotation.z = Math.PI / 2;
+    chBond1White.position.x = -ccBondLength / 2 - chBondLength * 0.75;
+    molecule.add(chBond1White);
 
-    const chBond2 = new THREE.Mesh(chBondGeom, bondMaterial);
-    chBond2.rotation.z = Math.PI / 2;
-    chBond2.position.x = ccBondLength / 2 + chBondLength / 2;
-    molecule.add(chBond2);
+    // Black half connected to C1
+    const chBond1Black = new THREE.Mesh(chHalfGeom, bondMaterialCarbon);
+    chBond1Black.rotation.z = Math.PI / 2;
+    chBond1Black.position.x = -ccBondLength / 2 - chBondLength * 0.25;
+    molecule.add(chBond1Black);
 
-    // C-C Triple Bonds (3 separate cylinders so we can detach one later)
+    // C-H Bonds (Right side: C2 to H2)
+    // Black half connected to C2
+    const chBond2Black = new THREE.Mesh(chHalfGeom, bondMaterialCarbon);
+    chBond2Black.rotation.z = Math.PI / 2;
+    chBond2Black.position.x = ccBondLength / 2 + chBondLength * 0.25;
+    molecule.add(chBond2Black);
+
+    // White half connected to H2
+    const chBond2White = new THREE.Mesh(chHalfGeom, bondMaterialHydrogen);
+    chBond2White.rotation.z = Math.PI / 2;
+    chBond2White.position.x = ccBondLength / 2 + chBondLength * 0.75;
+    molecule.add(chBond2White);
+
+    // C-C Triple Bonds (All black, 3 separate cylinders)
     const ccBondGeom = new THREE.CylinderGeometry(bondRadius, bondRadius, ccBondLength, 16);
 
     // Central bond
-    const ccBondMain = new THREE.Mesh(ccBondGeom, bondMaterial);
+    const ccBondMain = new THREE.Mesh(ccBondGeom, bondMaterialCarbon.clone());
     ccBondMain.rotation.z = Math.PI / 2;
     molecule.add(ccBondMain);
 
     // Top pi bond
-    const ccBondPi1 = new THREE.Mesh(ccBondGeom, bondMaterial);
+    const ccBondPi1 = new THREE.Mesh(ccBondGeom, bondMaterialCarbon.clone());
     ccBondPi1.rotation.z = Math.PI / 2;
-    ccBondPi1.position.y = carbonRadius * 0.7; // Offset slightly
+    ccBondPi1.position.y = 0.4; // Explicit spacing
     molecule.add(ccBondPi1);
 
-    // Bottom pi bond (This is the one we will detach and move)
-    const ccBondPi2 = new THREE.Mesh(ccBondGeom, bondMaterial.clone()); // Clone material so we can fade it later independently
+    // Bottom pi bond
+    const ccBondPi2 = new THREE.Mesh(ccBondGeom, bondMaterialCarbon.clone());
     ccBondPi2.rotation.z = Math.PI / 2;
-    ccBondPi2.position.y = -carbonRadius * 0.7; // Offset slightly
+    ccBondPi2.position.y = -0.4;
     molecule.add(ccBondPi2);
 
-    // Store references to parts we need to animate
     molecule.userData = {
-        c1, c2, h1, h2, chBond1, chBond2, ccBondMain, ccBondPi1, ccBondPi2
+        c1, c2, h1, h2,
+        chBond1White, chBond1Black, chBond2Black, chBond2White,
+        ccBondMain, ccBondPi1, ccBondPi2
     };
 
     return molecule;
@@ -119,32 +135,24 @@ function createAcetylene() {
 
 const molecules = [];
 const R = 8; // Initial distance from center
-const angles = [Math.PI/2, Math.PI/2 + Math.PI*2/3, Math.PI/2 + Math.PI*4/3];
+// To form a perfect hexagon, the 3 acetylene molecules must align perfectly
+// The hexagon has 6 sides. Each C2H2 covers 2 sides (or 1 side with 2 carbons)
+// They will be positioned at 60, 180, 300 degrees.
+const angles = [Math.PI/6, Math.PI/2 + Math.PI/3, 5*Math.PI/6 + Math.PI/3]; // these don't form a triangle, let's use:
+const hexAngles = [Math.PI/6, 5*Math.PI/6, 9*Math.PI/6];
+// Actually, let's align them on 3 sides of a hexagon:
+// Angle 0, 120, 240
+const anglesSet = [0, Math.PI * 2 / 3, Math.PI * 4 / 3];
 
 for (let i = 0; i < 3; i++) {
     const mol = createAcetylene();
-    // Position them in a circle
-    mol.position.set(Math.cos(angles[i]) * R, Math.sin(angles[i]) * R, 0);
-    // Orient them tangentially
-    mol.rotation.z = angles[i] + Math.PI / 2;
+    mol.position.set(Math.cos(anglesSet[i]) * R, Math.sin(anglesSet[i]) * R, 0);
+    // Acetylene molecules are tangent to the circle
+    mol.rotation.z = anglesSet[i] + Math.PI / 2;
 
     scene.add(mol);
-    molecules.push({ group: mol, angle: angles[i] });
+    molecules.push({ group: mol, angle: anglesSet[i] });
 }
-
-// Resonance Ring (Torus) - Initially hidden
-const ringGeometry = new THREE.TorusGeometry(2.5, 0.2, 16, 100);
-const ringMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff4500,
-    emissive: 0xff4500,
-    emissiveIntensity: 0,
-    transparent: true,
-    opacity: 0,
-    roughness: 0.1,
-    metalness: 0.8
-});
-const resonanceRing = new THREE.Mesh(ringGeometry, ringMaterial);
-scene.add(resonanceRing);
 
 // Handle Window Resize
 window.addEventListener('resize', () => {
@@ -156,17 +164,18 @@ window.addEventListener('resize', () => {
 });
 
 // Render Loop
-const clock = new THREE.Clock();
-
 function tick() {
     controls.update();
     renderer.render(scene, camera);
     window.requestAnimationFrame(tick);
 }
-
 tick();
 
-// Start Animation sequence
+// Expose variables for animation
+window.appScene = scene;
+window.appTHREE = THREE;
+window.appMolecules = molecules;
+
 setTimeout(() => {
-    animateFormation(molecules, resonanceRing, scene, THREE);
+    animateFormation(molecules, scene, THREE);
 }, 2000);

@@ -1,35 +1,48 @@
 import gsap from 'gsap';
 
-export function animateFormation(molecules, resonanceRing, scene, THREE) {
+export function animateFormation(molecules, scene, THREE) {
     const tl = gsap.timeline();
 
-    // Phase 1: Heat up (Jittering + Spin)
-    molecules.forEach((mol, index) => {
+    // Phase 1: Heat up (Jittering)
+    molecules.forEach((mol) => {
         tl.to(mol.group.position, {
             x: `+=${(Math.random() - 0.5) * 1.5}`,
             y: `+=${(Math.random() - 0.5) * 1.5}`,
-            z: `+=${(Math.random() - 0.5) * 1.5}`,
             duration: 0.1,
             repeat: 20,
             yoyo: true,
             ease: "none"
         }, 0);
 
-        // Add rotation during heat up
         tl.to(mol.group.rotation, {
             x: `+=${Math.PI}`,
-            y: `+=${Math.PI}`,
             duration: 2,
             ease: "power1.inOut"
         }, 0);
     });
 
-    // Phase 2: Approach (Converging to form hexagon)
-    const finalRadius = 2.5; // Benzene C-C radius from center
+    // Phase 2: Approach
+    // Benzene C-C bond length is ~1.4, so regular hexagon radius is ~1.4
+    // We need to position the molecules so their carbons align on a hexagon.
+    // Molecule length is 1.6 (between carbons).
+    // Hexagon side length = 1.6 => Radius = 1.6.
+    const hexRadius = 1.6;
+
+    // Calculate precise target positions and rotations for the 3 acetylene molecules
+    // to form 3 alternating sides of a hexagon.
+    // Hexagon vertices at angles: 30, 90, 150, 210, 270, 330
+
+    // Side 1 (Top right): angle 60
+    // Side 2 (Bottom): angle 180
+    // Side 3 (Top left): angle 300
+    const finalAngles = [Math.PI/3, Math.PI, 5*Math.PI/3];
+
     molecules.forEach((mol, index) => {
-        // Calculate new positions so carbons form a regular hexagon
-        const targetX = Math.cos(mol.angle) * finalRadius;
-        const targetY = Math.sin(mol.angle) * finalRadius;
+        // Apothem distance (center to middle of hexagon side)
+        const apothem = hexRadius * Math.sqrt(3) / 2;
+
+        const targetX = Math.cos(finalAngles[index]) * apothem;
+        const targetY = Math.sin(finalAngles[index]) * apothem;
 
         tl.to(mol.group.position, {
             x: targetX,
@@ -37,115 +50,103 @@ export function animateFormation(molecules, resonanceRing, scene, THREE) {
             z: 0,
             duration: 2,
             ease: "back.inOut(1.2)"
-        }, 2); // Start at 2 seconds
+        }, 2);
 
-        // Reset rotation so they lie flat
+        // Orient parallel to the side
         tl.to(mol.group.rotation, {
             x: 0,
             y: 0,
-            z: mol.angle + Math.PI / 2,
+            z: finalAngles[index] + Math.PI / 2,
             duration: 2,
             ease: "back.inOut(1.2)"
         }, 2);
     });
 
     // Phase 3: Reaction (Morphing/Snapping bonds)
+    // We will take ONE pi bond from each triple bond and snap it to connect the corners.
+    const shiftingBonds = [];
+
     molecules.forEach((mol, index) => {
         const nextMol = molecules[(index + 1) % 3];
 
-        // We will detach ccBondPi2 from current molecule and snap it to connect
-        // current molecule's c2 with next molecule's c1
         const movingBond = mol.group.userData.ccBondPi2;
+        shiftingBonds.push(movingBond);
 
-        // Detach bond from group and add to scene to animate independently in world space
+        // Detach bond from group and add to scene
         scene.attach(movingBond);
 
-        // Calculate world positions for the snap
-        const currentC2World = new THREE.Vector3();
-        mol.group.userData.c2.getWorldPosition(currentC2World);
+        // Get world positions of the carbons we need to connect
+        // current c2 to next c1
+        // Need to wait until Phase 2 is mostly done to calculate this,
+        // so we calculate dynamically or rely on exact geometry.
+    });
 
-        const nextC1World = new THREE.Vector3();
-        nextMol.group.userData.c1.getWorldPosition(nextC1World);
+    // We can pre-calculate the snap positions based on the ideal hexagon
+    // The moving bond needs to form the other 3 sides of the hexagon.
+    // Side angles: 0, 120, 240 (or 0, 2PI/3, 4PI/3)
+    const newBondAngles = [0, 2*Math.PI/3, 4*Math.PI/3];
 
-        // Midpoint
-        const midPoint = new THREE.Vector3().addVectors(currentC2World, nextC1World).multiplyScalar(0.5);
+    shiftingBonds.forEach((bond, index) => {
+        const apothem = hexRadius * Math.sqrt(3) / 2;
+        const targetX = Math.cos(newBondAngles[index]) * apothem;
+        const targetY = Math.sin(newBondAngles[index]) * apothem;
 
-        // Add a dramatic spin to the bond as it moves into place
-        tl.to(movingBond.rotation, {
-            x: `+=${Math.PI * 2}`,
-            y: `+=${Math.PI * 2}`,
-            duration: 1.5,
-            ease: "power2.inOut"
-        }, 4);
-
-        // Animate the detached bond moving to the midpoint and rotating to connect
-        tl.to(movingBond.position, {
-            x: midPoint.x,
-            y: midPoint.y,
-            z: midPoint.z,
+        tl.to(bond.position, {
+            x: targetX,
+            y: targetY,
+            z: 0,
             duration: 1.5,
             ease: "elastic.out(1, 0.5)"
-        }, 4); // Start at 4 seconds
+        }, 4);
 
-        // Calculate the angle to connect the two carbons
-        const direction = new THREE.Vector3().subVectors(nextC1World, currentC2World).normalize();
-
-        // Final snap rotation
-        tl.to(movingBond.rotation, {
+        tl.to(bond.rotation, {
             x: 0,
             y: 0,
-            z: Math.atan2(direction.y, direction.x) - Math.PI/2,
-            duration: 0.5,
-            ease: "power2.out"
-        }, 5);
+            z: newBondAngles[index] + Math.PI / 2,
+            duration: 1.5,
+            ease: "elastic.out(1, 0.5)"
+        }, 4);
     });
 
-    // Phase 4: Resonance Delocalization (Glowing Torus)
-    // Fade out specific pi bonds
-    molecules.forEach((mol) => {
-        tl.to([
-            mol.group.userData.ccBondPi1.material,
-            mol.group.userData.ccBondPi2.material // The one we moved
-        ], {
-            opacity: 0,
-            transparent: true,
-            duration: 1.5
-        }, 6);
+    // Phase 4: Resonance
+    // Benzene has delocalized pi electrons. Kekulé structures alternate.
+    // We represent this by continuously shifting the 3 pi bonds back and forth
+    // between the two adjacent positions.
+    // Currently, we have 3 static double bonds (main + pi1) and 3 static single bonds (the ones we moved).
+    // Wait, we moved ccBondPi2. So now the original sides have (main + pi1).
+    // The new sides have ONLY ccBondPi2.
+    // To show resonance, we need to move the 'pi1' bonds from the original sides to the new sides.
+
+    const originalPiBonds = molecules.map(m => m.group.userData.ccBondPi1);
+
+    originalPiBonds.forEach((piBond, index) => {
+        scene.attach(piBond);
+
+        // Target is next to the movingBond of the SAME index (or next index depending on rotation).
+        // A simple way to visualize resonance is to rotate the entire set of pi bonds by 60 degrees
+        // back and forth around the origin.
     });
 
-    // Fade in glowing resonance ring
-    tl.to(resonanceRing.material, {
-        opacity: 0.9,
-        emissiveIntensity: 1.5,
-        duration: 2,
-        ease: "power2.inOut"
+    // Create a group for the resonance pi bonds to rotate them easily
+    const resonanceGroup = new THREE.Group();
+    scene.add(resonanceGroup);
+
+    // Wait for snap to finish, then attach the 3 remaining pi bonds to this group
+    tl.add(() => {
+        originalPiBonds.forEach(bond => {
+            resonanceGroup.attach(bond);
+        });
     }, 6);
 
-    // Scale up the ring slightly to encompass the hexagon
-    tl.fromTo(resonanceRing.scale,
-        {x: 0.8, y: 0.8, z: 0.8},
-        {x: 1.0, y: 1.0, z: 1.0, duration: 2, ease: "elastic.out(1, 0.3)"},
-        6
-    );
-
-    // Continuous pulsing effect for resonance ring
-    tl.to(resonanceRing.scale, {
-        x: 1.05,
-        y: 1.05,
-        z: 1.05,
-        duration: 1,
+    // Animate the shifting of bonds (60 degrees = PI/3)
+    tl.to(resonanceGroup.rotation, {
+        z: Math.PI / 3,
+        duration: 0.5,
+        ease: "power2.inOut",
         repeat: -1,
         yoyo: true,
-        ease: "sine.inOut"
-    }, 8);
-
-    tl.to(resonanceRing.material, {
-        emissiveIntensity: 0.8,
-        duration: 1,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut"
-    }, 8);
+        repeatDelay: 0.5
+    }, 6.1);
 
     return tl;
 }
