@@ -1,152 +1,123 @@
 import gsap from 'gsap';
+import * as THREE from 'three';
 
-export function animateFormation(molecules, scene, THREE) {
+export function animateFormation(data) {
+    const { molecules, scene, ccBondLength } = data;
     const tl = gsap.timeline();
 
-    // Phase 1: Heat up (Jittering)
+    // Phase 1: Heat up
     molecules.forEach((mol) => {
-        tl.to(mol.group.position, {
-            x: `+=${(Math.random() - 0.5) * 1.5}`,
-            y: `+=${(Math.random() - 0.5) * 1.5}`,
+        tl.to(mol.position, {
+            x: `+=${(Math.random() - 0.5) * 2}`,
+            y: `+=${(Math.random() - 0.5) * 2}`,
             duration: 0.1,
-            repeat: 20,
+            repeat: 15,
             yoyo: true,
             ease: "none"
         }, 0);
-
-        tl.to(mol.group.rotation, {
-            x: `+=${Math.PI}`,
-            duration: 2,
-            ease: "power1.inOut"
-        }, 0);
     });
 
-    // Phase 2: Approach
-    // Benzene C-C bond length is ~1.4, so regular hexagon radius is ~1.4
-    // We need to position the molecules so their carbons align on a hexagon.
-    // Molecule length is 1.6 (between carbons).
-    // Hexagon side length = 1.6 => Radius = 1.6.
-    const hexRadius = 1.6;
+    // Phase 2: Approach (Exact Regular Hexagon)
+    // Hexagon side length = ccBondLength
+    const hexRadius = ccBondLength;
+    const apothem = hexRadius * Math.sqrt(3) / 2;
 
-    // Calculate precise target positions and rotations for the 3 acetylene molecules
-    // to form 3 alternating sides of a hexagon.
-    // Hexagon vertices at angles: 30, 90, 150, 210, 270, 330
+    // We place the 3 molecules on alternating sides of the hexagon
+    // Let's use sides at 30 deg, 150 deg, 270 deg (Bottom)
+    // Actually, sides at 90, 210, 330 looks better (Top is flat, bottom is pointy)
+    // Let's use angles: 90 (PI/2), 210 (7PI/6), 330 (11PI/6)
+    const sideAngles = [Math.PI/2, 7*Math.PI/6, 11*Math.PI/6];
 
-    // Side 1 (Top right): angle 60
-    // Side 2 (Bottom): angle 180
-    // Side 3 (Top left): angle 300
-    const finalAngles = [Math.PI/3, Math.PI, 5*Math.PI/3];
+    molecules.forEach((mol, i) => {
+        const angle = sideAngles[i];
+        const targetX = Math.cos(angle) * apothem;
+        const targetY = Math.sin(angle) * apothem;
 
-    molecules.forEach((mol, index) => {
-        // Apothem distance (center to middle of hexagon side)
-        const apothem = hexRadius * Math.sqrt(3) / 2;
-
-        const targetX = Math.cos(finalAngles[index]) * apothem;
-        const targetY = Math.sin(finalAngles[index]) * apothem;
-
-        tl.to(mol.group.position, {
+        tl.to(mol.position, {
             x: targetX,
             y: targetY,
             z: 0,
-            duration: 2,
-            ease: "back.inOut(1.2)"
-        }, 2);
+            duration: 2.5,
+            ease: "power2.inOut"
+        }, 1.5);
 
-        // Orient parallel to the side
-        tl.to(mol.group.rotation, {
+        // The cylinder is along local X axis.
+        // The side of the hexagon is perpendicular to the apothem angle.
+        // We want the molecule to lie flat on the side.
+        tl.to(mol.rotation, {
             x: 0,
             y: 0,
-            z: finalAngles[index] + Math.PI / 2,
-            duration: 2,
-            ease: "back.inOut(1.2)"
-        }, 2);
+            z: angle + Math.PI / 2,
+            duration: 2.5,
+            ease: "power2.inOut"
+        }, 1.5);
     });
 
-    // Phase 3: Reaction (Morphing/Snapping bonds)
-    // We will take ONE pi bond from each triple bond and snap it to connect the corners.
+    // Phase 3: Snap moving bonds to empty sides
+    // The empty sides are at: 30 (PI/6), 150 (5PI/6), 270 (3PI/2)
+    const emptySides = [5*Math.PI/6, 3*Math.PI/2, Math.PI/6];
     const shiftingBonds = [];
 
-    molecules.forEach((mol, index) => {
-        const nextMol = molecules[(index + 1) % 3];
-
-        const movingBond = mol.group.userData.ccBondPi2;
+    molecules.forEach((mol, i) => {
+        const movingBond = mol.userData.ccBondPi2;
         shiftingBonds.push(movingBond);
 
-        // Detach bond from group and add to scene
+        // Remove from molecule, add to scene to animate in world space
         scene.attach(movingBond);
-
-        // Get world positions of the carbons we need to connect
-        // current c2 to next c1
-        // Need to wait until Phase 2 is mostly done to calculate this,
-        // so we calculate dynamically or rely on exact geometry.
     });
 
-    // We can pre-calculate the snap positions based on the ideal hexagon
-    // The moving bond needs to form the other 3 sides of the hexagon.
-    // Side angles: 0, 120, 240 (or 0, 2PI/3, 4PI/3)
-    const newBondAngles = [0, 2*Math.PI/3, 4*Math.PI/3];
+    shiftingBonds.forEach((bond, i) => {
+        const angle = emptySides[i];
+        const targetX = Math.cos(angle) * apothem;
+        const targetY = Math.sin(angle) * apothem;
 
-    shiftingBonds.forEach((bond, index) => {
-        const apothem = hexRadius * Math.sqrt(3) / 2;
-        const targetX = Math.cos(newBondAngles[index]) * apothem;
-        const targetY = Math.sin(newBondAngles[index]) * apothem;
-
+        // Animate bond translating and rotating to the new empty side
         tl.to(bond.position, {
             x: targetX,
             y: targetY,
             z: 0,
             duration: 1.5,
-            ease: "elastic.out(1, 0.5)"
-        }, 4);
+            ease: "power2.inOut"
+        }, 4.0);
 
+        // Since bond was added to scene, its rotation is currently relative to world.
+        // It should match the angle of the new side
         tl.to(bond.rotation, {
             x: 0,
             y: 0,
-            z: newBondAngles[index] + Math.PI / 2,
+            z: angle + Math.PI / 2,
             duration: 1.5,
-            ease: "elastic.out(1, 0.5)"
-        }, 4);
+            ease: "power2.inOut"
+        }, 4.0);
     });
 
-    // Phase 4: Resonance
-    // Benzene has delocalized pi electrons. Kekulé structures alternate.
-    // We represent this by continuously shifting the 3 pi bonds back and forth
-    // between the two adjacent positions.
-    // Currently, we have 3 static double bonds (main + pi1) and 3 static single bonds (the ones we moved).
-    // Wait, we moved ccBondPi2. So now the original sides have (main + pi1).
-    // The new sides have ONLY ccBondPi2.
-    // To show resonance, we need to move the 'pi1' bonds from the original sides to the new sides.
+    // Phase 4: Kekulé Resonance
+    // The static ring consists of the main sigma bonds and the pi2 bonds we just moved.
+    // The remaining pi1 bonds on the original molecules need to shift to the empty sides
+    // to simulate the alternating double bonds.
+    // Since the original sides and empty sides alternate exactly 60 degrees apart,
+    // we can create a central group containing just the pi1 bonds, and rotate the group by 60 deg.
 
-    const originalPiBonds = molecules.map(m => m.group.userData.ccBondPi1);
-
-    originalPiBonds.forEach((piBond, index) => {
-        scene.attach(piBond);
-
-        // Target is next to the movingBond of the SAME index (or next index depending on rotation).
-        // A simple way to visualize resonance is to rotate the entire set of pi bonds by 60 degrees
-        // back and forth around the origin.
-    });
-
-    // Create a group for the resonance pi bonds to rotate them easily
     const resonanceGroup = new THREE.Group();
     scene.add(resonanceGroup);
 
-    // Wait for snap to finish, then attach the 3 remaining pi bonds to this group
+    // Once everything is in place, attach the pi1 bonds to the resonance group
     tl.add(() => {
-        originalPiBonds.forEach(bond => {
-            resonanceGroup.attach(bond);
+        molecules.forEach(mol => {
+            const pi1 = mol.userData.ccBondPi1;
+            resonanceGroup.attach(pi1);
         });
-    }, 6);
+    }, 5.5);
 
-    // Animate the shifting of bonds (60 degrees = PI/3)
+    // Rotate exactly 60 degrees (PI/3)
     tl.to(resonanceGroup.rotation, {
         z: Math.PI / 3,
-        duration: 0.5,
-        ease: "power2.inOut",
+        duration: 0.2,
+        ease: "power1.inOut",
         repeat: -1,
         yoyo: true,
-        repeatDelay: 0.5
-    }, 6.1);
+        repeatDelay: 0.8
+    }, 6.0);
 
     return tl;
 }
