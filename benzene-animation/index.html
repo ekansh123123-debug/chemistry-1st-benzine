@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Benzene Formation Animation</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <div class="container">
+      <!-- 3D Canvas Side -->
+      <div class="animation-panel">
+        <canvas id="webgl-canvas"></canvas>
+        <div class="overlay">
+          <h1>Trimerization of Acetylene</h1>
+          <p>3 C₂H₂ &rarr; C₆H₆</p>
+          <button id="toggle-audio-btn">Play Cinematic Audio</button>
+        </div>
+      </div>
+
+      <!-- Scrolling Information Side -->
+      <div class="info-panel" id="reactions-container">
+        <h2>Reactions of Benzene</h2>
+        <!-- Reactions will be injected here via JS -->
+      </div>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
