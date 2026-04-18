@@ -1,8 +1,8 @@
 :root {
-  --bg-dark: #0a0a0f;
+  --bg-dark: #020c1b;
   --text-light: #f0f0f0;
   --accent: #ff4500;
-  --card-bg: #1a1a24;
+  --card-bg: #112240;
 }
 
 * {

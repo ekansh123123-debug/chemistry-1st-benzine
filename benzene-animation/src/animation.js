@@ -3,16 +3,24 @@ import gsap from 'gsap';
 export function animateFormation(molecules, resonanceRing, scene, THREE) {
     const tl = gsap.timeline();
 
-    // Phase 1: Heat up (Jittering)
+    // Phase 1: Heat up (Jittering + Spin)
     molecules.forEach((mol, index) => {
         tl.to(mol.group.position, {
-            x: `+=${(Math.random() - 0.5) * 1}`,
-            y: `+=${(Math.random() - 0.5) * 1}`,
-            z: `+=${(Math.random() - 0.5) * 1}`,
+            x: `+=${(Math.random() - 0.5) * 1.5}`,
+            y: `+=${(Math.random() - 0.5) * 1.5}`,
+            z: `+=${(Math.random() - 0.5) * 1.5}`,
             duration: 0.1,
             repeat: 20,
             yoyo: true,
             ease: "none"
+        }, 0);
+
+        // Add rotation during heat up
+        tl.to(mol.group.rotation, {
+            x: `+=${Math.PI}`,
+            y: `+=${Math.PI}`,
+            duration: 2,
+            ease: "power1.inOut"
         }, 0);
     });
 
@@ -28,8 +36,17 @@ export function animateFormation(molecules, resonanceRing, scene, THREE) {
             y: targetY,
             z: 0,
             duration: 2,
-            ease: "power2.inOut"
+            ease: "back.inOut(1.2)"
         }, 2); // Start at 2 seconds
+
+        // Reset rotation so they lie flat
+        tl.to(mol.group.rotation, {
+            x: 0,
+            y: 0,
+            z: mol.angle + Math.PI / 2,
+            duration: 2,
+            ease: "back.inOut(1.2)"
+        }, 2);
     });
 
     // Phase 3: Reaction (Morphing/Snapping bonds)
@@ -53,6 +70,14 @@ export function animateFormation(molecules, resonanceRing, scene, THREE) {
         // Midpoint
         const midPoint = new THREE.Vector3().addVectors(currentC2World, nextC1World).multiplyScalar(0.5);
 
+        // Add a dramatic spin to the bond as it moves into place
+        tl.to(movingBond.rotation, {
+            x: `+=${Math.PI * 2}`,
+            y: `+=${Math.PI * 2}`,
+            duration: 1.5,
+            ease: "power2.inOut"
+        }, 4);
+
         // Animate the detached bond moving to the midpoint and rotating to connect
         tl.to(movingBond.position, {
             x: midPoint.x,
@@ -65,15 +90,14 @@ export function animateFormation(molecules, resonanceRing, scene, THREE) {
         // Calculate the angle to connect the two carbons
         const direction = new THREE.Vector3().subVectors(nextC1World, currentC2World).normalize();
 
-        // The cylinder is created along Y axis by default.
-        // We aim its local Y axis along the direction vector.
+        // Final snap rotation
         tl.to(movingBond.rotation, {
             x: 0,
             y: 0,
             z: Math.atan2(direction.y, direction.x) - Math.PI/2,
-            duration: 1.5,
-            ease: "elastic.out(1, 0.5)"
-        }, 4);
+            duration: 0.5,
+            ease: "power2.out"
+        }, 5);
     });
 
     // Phase 4: Resonance Delocalization (Glowing Torus)
@@ -91,8 +115,8 @@ export function animateFormation(molecules, resonanceRing, scene, THREE) {
 
     // Fade in glowing resonance ring
     tl.to(resonanceRing.material, {
-        opacity: 0.8,
-        emissiveIntensity: 1,
+        opacity: 0.9,
+        emissiveIntensity: 1.5,
         duration: 2,
         ease: "power2.inOut"
     }, 6);
@@ -100,9 +124,28 @@ export function animateFormation(molecules, resonanceRing, scene, THREE) {
     // Scale up the ring slightly to encompass the hexagon
     tl.fromTo(resonanceRing.scale,
         {x: 0.8, y: 0.8, z: 0.8},
-        {x: 1.0, y: 1.0, z: 1.0, duration: 2, ease: "back.out(1.7)"},
+        {x: 1.0, y: 1.0, z: 1.0, duration: 2, ease: "elastic.out(1, 0.3)"},
         6
     );
+
+    // Continuous pulsing effect for resonance ring
+    tl.to(resonanceRing.scale, {
+        x: 1.05,
+        y: 1.05,
+        z: 1.05,
+        duration: 1,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+    }, 8);
+
+    tl.to(resonanceRing.material, {
+        emissiveIntensity: 0.8,
+        duration: 1,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+    }, 8);
 
     return tl;
 }
