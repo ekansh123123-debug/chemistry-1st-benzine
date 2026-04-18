@@ -18,14 +18,11 @@ export function animateFormation(data) {
     });
 
     // Phase 2: Approach (Exact Regular Hexagon)
-    // Hexagon side length = ccBondLength
     const hexRadius = ccBondLength;
     const apothem = hexRadius * Math.sqrt(3) / 2;
 
     // We place the 3 molecules on alternating sides of the hexagon
-    // Let's use sides at 30 deg, 150 deg, 270 deg (Bottom)
-    // Actually, sides at 90, 210, 330 looks better (Top is flat, bottom is pointy)
-    // Let's use angles: 90 (PI/2), 210 (7PI/6), 330 (11PI/6)
+    // Angles for the sides: 90 (PI/2), 210 (7PI/6), 330 (11PI/6)
     const sideAngles = [Math.PI/2, 7*Math.PI/6, 11*Math.PI/6];
 
     molecules.forEach((mol, i) => {
@@ -41,9 +38,6 @@ export function animateFormation(data) {
             ease: "power2.inOut"
         }, 1.5);
 
-        // The cylinder is along local X axis.
-        // The side of the hexagon is perpendicular to the apothem angle.
-        // We want the molecule to lie flat on the side.
         tl.to(mol.rotation, {
             x: 0,
             y: 0,
@@ -56,68 +50,121 @@ export function animateFormation(data) {
     // Phase 3: Snap moving bonds to empty sides
     // The empty sides are at: 30 (PI/6), 150 (5PI/6), 270 (3PI/2)
     const emptySides = [5*Math.PI/6, 3*Math.PI/2, Math.PI/6];
-    const shiftingBonds = [];
 
     molecules.forEach((mol, i) => {
         const movingBond = mol.userData.ccBondPi2;
-        shiftingBonds.push(movingBond);
 
-        // Remove from molecule, add to scene to animate in world space
-        scene.attach(movingBond);
+        // At 4.0s, remove from molecule and add to scene to animate
+        tl.add(() => {
+            // Calculate world position before detaching
+            const worldPos = new THREE.Vector3();
+            movingBond.getWorldPosition(worldPos);
+
+            const worldQuat = new THREE.Quaternion();
+            movingBond.getWorldQuaternion(worldQuat);
+
+            scene.attach(movingBond);
+
+            // Set it to exactly where it was in world space
+            movingBond.position.copy(worldPos);
+            movingBond.quaternion.copy(worldQuat);
+
+            // Animate to new side
+            const angle = emptySides[i];
+            const targetX = Math.cos(angle) * apothem;
+            const targetY = Math.sin(angle) * apothem;
+
+            gsap.to(movingBond.position, {
+                x: targetX,
+                y: targetY,
+                z: 0,
+                duration: 1.5,
+                ease: "power2.inOut"
+            });
+
+            // The bond needs to be parallel to the side.
+            // Side angle + PI/2 because the cylinder is drawn along Y, but we rotate it PI/2 along Z.
+            gsap.to(movingBond.rotation, {
+                x: 0,
+                y: 0,
+                z: angle + Math.PI / 2,
+                duration: 1.5,
+                ease: "power2.inOut"
+            });
+        }, 4.0);
     });
 
-    shiftingBonds.forEach((bond, i) => {
-        const angle = emptySides[i];
-        const targetX = Math.cos(angle) * apothem;
-        const targetY = Math.sin(angle) * apothem;
+    // Angle C-H bonds outwards so it looks like a proper hexagon
+    // In benzene, C-H bonds point exactly outwards from the center.
+    // Molecule 0 is at 90 deg. Its carbons are at 60 and 120.
+    // Molecule 1 is at 210 deg. Carbons at 180 and 240.
+    // Molecule 2 is at 330 deg. Carbons at 300 and 360.
+    const chAngles = [
+        [Math.PI/3, 2*Math.PI/3],
+        [Math.PI, 4*Math.PI/3],
+        [5*Math.PI/3, 2*Math.PI]
+    ];
 
-        // Animate bond translating and rotating to the new empty side
-        tl.to(bond.position, {
-            x: targetX,
-            y: targetY,
-            z: 0,
-            duration: 1.5,
-            ease: "power2.inOut"
-        }, 4.0);
+    molecules.forEach((mol, i) => {
+        // chPivot1 is the left carbon (higher angle locally)
+        // chPivot2 is the right carbon (lower angle locally)
 
-        // Since bond was added to scene, its rotation is currently relative to world.
-        // It should match the angle of the new side
-        tl.to(bond.rotation, {
-            x: 0,
-            y: 0,
-            z: angle + Math.PI / 2,
-            duration: 1.5,
-            ease: "power2.inOut"
+        // We need the pivots to rotate such that the C-H bond points outward from origin.
+        // Wait until they snap
+        tl.add(() => {
+            const pivot1 = mol.userData.chPivot1;
+            const pivot2 = mol.userData.chPivot2;
+
+            // In local space, the C-H bond currently points along -X for pivot1 and +X for pivot2.
+            // We want it to bend outwards by 30 degrees (PI/6) to form the 120 deg angle of a hexagon.
+            gsap.to(pivot1.rotation, {
+                z: -Math.PI/6,
+                duration: 1.5,
+                ease: "power2.inOut"
+            });
+
+            gsap.to(pivot2.rotation, {
+                z: Math.PI/6,
+                duration: 1.5,
+                ease: "power2.inOut"
+            });
+
         }, 4.0);
     });
 
     // Phase 4: Kekulé Resonance
-    // The static ring consists of the main sigma bonds and the pi2 bonds we just moved.
-    // The remaining pi1 bonds on the original molecules need to shift to the empty sides
-    // to simulate the alternating double bonds.
-    // Since the original sides and empty sides alternate exactly 60 degrees apart,
-    // we can create a central group containing just the pi1 bonds, and rotate the group by 60 deg.
-
     const resonanceGroup = new THREE.Group();
     scene.add(resonanceGroup);
 
-    // Once everything is in place, attach the pi1 bonds to the resonance group
     tl.add(() => {
         molecules.forEach(mol => {
             const pi1 = mol.userData.ccBondPi1;
-            resonanceGroup.attach(pi1);
-        });
-    }, 5.5);
 
-    // Rotate exactly 60 degrees (PI/3)
-    tl.to(resonanceGroup.rotation, {
-        z: Math.PI / 3,
-        duration: 0.2,
-        ease: "power1.inOut",
-        repeat: -1,
-        yoyo: true,
-        repeatDelay: 0.8
-    }, 6.0);
+            const worldPos = new THREE.Vector3();
+            pi1.getWorldPosition(worldPos);
+            const worldQuat = new THREE.Quaternion();
+            pi1.getWorldQuaternion(worldQuat);
+
+            resonanceGroup.add(pi1);
+            pi1.position.copy(worldPos);
+            pi1.quaternion.copy(worldQuat);
+
+            // Because they were originally offset locally, we need to ensure their position in the group
+            // is exactly the apothem distance from center, but pulled inward slightly so it's a double bond.
+            // Actually, keeping the world pos/quat is perfect. We just rotate the group.
+        });
+
+        // Rotate exactly 60 degrees (PI/3)
+        gsap.to(resonanceGroup.rotation, {
+            z: Math.PI / 3,
+            duration: 0.2,
+            ease: "power1.inOut",
+            repeat: -1,
+            yoyo: true,
+            repeatDelay: 0.8
+        });
+
+    }, 5.5);
 
     return tl;
 }

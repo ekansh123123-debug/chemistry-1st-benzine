@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { renderReactions } from './reactions.js';
-import { animateFormation } from './animation.js';
 import { setupAudio } from './audio.js';
+import { animateFormation } from './animation.js';
 
 // Setup DOM elements
 renderReactions();
@@ -17,7 +17,6 @@ scene.background = new THREE.Color(0x0a192f);
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
-// Pull camera back to accommodate larger size
 camera.position.set(0, 0, 35);
 
 // Renderer setup
@@ -28,7 +27,6 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 // Controls setup
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-// Turn off autoRotate so user can clearly see the exact geometry
 controls.autoRotate = false;
 
 // Lighting setup
@@ -48,10 +46,11 @@ const bondMaterialHydrogen = new THREE.MeshStandardMaterial({ color: 0xffffff, r
 // Increase Sizes
 const carbonRadius = 0.8;
 const hydrogenRadius = 0.5;
-const bondRadius = 0.2;
+const bondRadius = 0.15;
 const ccBondLength = 3.0; // Hexagon side length
+const piBondLength = 2.2; // Inner double bonds are shorter to not overlap at corners
 const chBondLength = 1.5;
-const piBondSpacing = 0.6; // Wider gap between the 3 lines of the triple bond
+const piBondSpacing = 0.5;
 
 function createAcetylene() {
     const molecule = new THREE.Group();
@@ -65,60 +64,69 @@ function createAcetylene() {
     c2.position.x = ccBondLength / 2;
     molecule.add(c2);
 
+    // C-H Pivot 1
+    const chPivot1 = new THREE.Group();
+    chPivot1.position.x = -ccBondLength / 2;
+    molecule.add(chPivot1);
+
     const h1 = new THREE.Mesh(new THREE.SphereGeometry(hydrogenRadius, 32, 32), atomMaterialHydrogen);
-    h1.position.x = -ccBondLength / 2 - chBondLength;
-    molecule.add(h1);
+    h1.position.x = -chBondLength;
+    chPivot1.add(h1);
 
-    const h2 = new THREE.Mesh(new THREE.SphereGeometry(hydrogenRadius, 32, 32), atomMaterialHydrogen);
-    h2.position.x = ccBondLength / 2 + chBondLength;
-    molecule.add(h2);
-
-    // C-H Bonds (Left side: H1 to C1)
     const chHalfGeom = new THREE.CylinderGeometry(bondRadius, bondRadius, chBondLength / 2, 16);
-
-    const chBond1White = new THREE.Mesh(chHalfGeom, bondMaterialHydrogen);
-    chBond1White.rotation.z = Math.PI / 2;
-    chBond1White.position.x = -ccBondLength / 2 - chBondLength * 0.75;
-    molecule.add(chBond1White);
 
     const chBond1Black = new THREE.Mesh(chHalfGeom, bondMaterialCarbon);
     chBond1Black.rotation.z = Math.PI / 2;
-    chBond1Black.position.x = -ccBondLength / 2 - chBondLength * 0.25;
-    molecule.add(chBond1Black);
+    chBond1Black.position.x = -chBondLength * 0.25;
+    chPivot1.add(chBond1Black);
 
-    // C-H Bonds (Right side: C2 to H2)
+    const chBond1White = new THREE.Mesh(chHalfGeom, bondMaterialHydrogen);
+    chBond1White.rotation.z = Math.PI / 2;
+    chBond1White.position.x = -chBondLength * 0.75;
+    chPivot1.add(chBond1White);
+
+    // C-H Pivot 2
+    const chPivot2 = new THREE.Group();
+    chPivot2.position.x = ccBondLength / 2;
+    molecule.add(chPivot2);
+
+    const h2 = new THREE.Mesh(new THREE.SphereGeometry(hydrogenRadius, 32, 32), atomMaterialHydrogen);
+    h2.position.x = chBondLength;
+    chPivot2.add(h2);
+
     const chBond2Black = new THREE.Mesh(chHalfGeom, bondMaterialCarbon);
     chBond2Black.rotation.z = Math.PI / 2;
-    chBond2Black.position.x = ccBondLength / 2 + chBondLength * 0.25;
-    molecule.add(chBond2Black);
+    chBond2Black.position.x = chBondLength * 0.25;
+    chPivot2.add(chBond2Black);
 
     const chBond2White = new THREE.Mesh(chHalfGeom, bondMaterialHydrogen);
     chBond2White.rotation.z = Math.PI / 2;
-    chBond2White.position.x = ccBondLength / 2 + chBondLength * 0.75;
-    molecule.add(chBond2White);
+    chBond2White.position.x = chBondLength * 0.75;
+    chPivot2.add(chBond2White);
 
     // C-C Triple Bonds
     const ccBondGeom = new THREE.CylinderGeometry(bondRadius, bondRadius, ccBondLength, 16);
+    const piBondGeom = new THREE.CylinderGeometry(bondRadius, bondRadius, piBondLength, 16);
 
     // Central sigma bond
     const ccBondMain = new THREE.Mesh(ccBondGeom, bondMaterialCarbon);
     ccBondMain.rotation.z = Math.PI / 2;
     molecule.add(ccBondMain);
 
-    // Top pi bond
-    const ccBondPi1 = new THREE.Mesh(ccBondGeom, bondMaterialCarbon);
+    // Top pi bond (Inner double bond, so slightly shorter)
+    const ccBondPi1 = new THREE.Mesh(piBondGeom, bondMaterialCarbon);
     ccBondPi1.rotation.z = Math.PI / 2;
     ccBondPi1.position.y = piBondSpacing;
     molecule.add(ccBondPi1);
 
-    // Bottom pi bond (To be detached)
+    // Bottom pi bond (Moves to become sigma bond, so full length)
     const ccBondPi2 = new THREE.Mesh(ccBondGeom, bondMaterialCarbon);
     ccBondPi2.rotation.z = Math.PI / 2;
     ccBondPi2.position.y = -piBondSpacing;
     molecule.add(ccBondPi2);
 
     molecule.userData = {
-        c1, c2, h1, h2,
+        c1, c2, chPivot1, chPivot2,
         ccBondMain, ccBondPi1, ccBondPi2
     };
 
@@ -140,7 +148,6 @@ for (let i = 0; i < 3; i++) {
     molecules.push(mol);
 }
 
-// Global Geometry info
 window.benzeneData = {
     molecules: molecules,
     scene: scene,
