@@ -34,17 +34,17 @@ export function animateFormation(data) {
             x: targetX,
             y: targetY,
             z: 0,
-            duration: 2.5,
+            duration: 0.8,
             ease: "power2.inOut"
-        }, 1.5);
+        }, 0.5);
 
         tl.to(mol.rotation, {
             x: 0,
             y: 0,
-            z: angle + Math.PI / 2,
-            duration: 2.5,
+            z: angle,
+            duration: 0.8,
             ease: "power2.inOut"
-        }, 1.5);
+        }, 0.5);
     });
 
     // Phase 3: Snap moving bonds to empty sides
@@ -78,7 +78,7 @@ export function animateFormation(data) {
                 x: targetX,
                 y: targetY,
                 z: 0,
-                duration: 1.5,
+                duration: 0.6,
                 ease: "power2.inOut"
             });
 
@@ -87,11 +87,11 @@ export function animateFormation(data) {
             gsap.to(movingBond.rotation, {
                 x: 0,
                 y: 0,
-                z: angle + Math.PI / 2,
-                duration: 1.5,
+                z: angle,
+                duration: 0.6,
                 ease: "power2.inOut"
             });
-        }, 4.0);
+        }, 1.5);
     });
 
     // Angle C-H bonds outwards so it looks like a proper hexagon
@@ -118,18 +118,18 @@ export function animateFormation(data) {
             // In local space, the C-H bond currently points along -X for pivot1 and +X for pivot2.
             // We want it to bend outwards by 30 degrees (PI/6) to form the 120 deg angle of a hexagon.
             gsap.to(pivot1.rotation, {
-                z: -Math.PI/6,
-                duration: 1.5,
+                z: -Math.PI/3,
+                duration: 0.6,
                 ease: "power2.inOut"
             });
 
             gsap.to(pivot2.rotation, {
-                z: Math.PI/6,
-                duration: 1.5,
+                z: Math.PI/3,
+                duration: 0.6,
                 ease: "power2.inOut"
             });
 
-        }, 4.0);
+        }, 1.5);
     });
 
     // Phase 4: Kekulé Resonance
@@ -161,10 +161,10 @@ export function animateFormation(data) {
             ease: "power1.inOut",
             repeat: -1,
             yoyo: true,
-            repeatDelay: 0.8
+            repeatDelay: 0.2
         });
 
-    }, 5.5);
+    }, 2.5);
 
     return tl;
 }

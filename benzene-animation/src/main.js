@@ -13,7 +13,7 @@ setupAudio();
 // Scene setup
 const canvas = document.getElementById('webgl-canvas');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a192f);
+scene.background = new THREE.Color(0xe0f2fe);
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
@@ -30,10 +30,10 @@ controls.enableDamping = true;
 controls.autoRotate = false;
 
 // Lighting setup
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
 scene.add(ambientLight);
 
-const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 100);
+const pointLight1 = new THREE.PointLight(0xffffff, 1.2, 100);
 pointLight1.position.set(10, 10, 20);
 scene.add(pointLight1);
 
