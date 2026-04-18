@@ -13,8 +13,8 @@ setupAudio();
 // Scene setup
 const canvas = document.getElementById('webgl-canvas');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x050508);
-scene.fog = new THREE.FogExp2(0x050508, 0.02);
+scene.background = new THREE.Color(0x0a192f);
+scene.fog = new THREE.FogExp2(0x0a192f, 0.02);
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
