@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Molecular Visualizer</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- 3Dmol.js -->
+    <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Animated Background -->
+    <div class="background-animation">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass-panel">
+            <header>
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f2fe" />
+                                <stop offset="100%" stop-color="#4facfe" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    <h1>Molecule<br><span>Viewer</span></h1>
+                </div>
+            </header>
+
+            <nav>
+                <button class="nav-btn active" data-molecule="benzene">
+                    <span class="btn-icon">⌬</span>
+                    Benzene
+                </button>
+                <button class="nav-btn" data-molecule="ppv">
+                    <span class="btn-icon">⛓️</span>
+                    PPV
+                </button>
+                <button class="nav-btn" data-molecule="polyacetylene">
+                    <span class="btn-icon">⚡</span>
+                    Trans-Polyacetylene
+                </button>
+            </nav>
+
+            <div class="info-panel glass-panel-inner">
+                <h3 id="info-title">Benzene</h3>
+                <p id="info-formula" class="formula">C₆H₆</p>
+                <p id="info-desc">Benzene is an organic chemical compound with the molecular formula C6H6. The benzene molecule is composed of six carbon atoms joined in a planar ring with one hydrogen atom attached to each. Because it contains only carbon and hydrogen atoms, benzene is classed as a hydrocarbon.</p>
+            </div>
+        </aside>
+
+        <!-- 3D Viewer Area -->
+        <section class="viewer-area">
+            <div class="glass-panel viewer-wrapper">
+                <div id="viewer-container" class="mol-container"></div>
+                <div class="viewer-overlay">
+                    <p>Left Click & Drag to Rotate &bull; Scroll to Zoom &bull; Right Click & Drag to Pan</p>
+                </div>
+                <div id="loading" class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading Molecule...</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
