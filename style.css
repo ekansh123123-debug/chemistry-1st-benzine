@@ -23,13 +23,17 @@ body {
     color: var(--text-primary);
     font-family: var(--font-body);
     height: 100vh;
-    overflow: hidden;
     position: relative;
+}
+@media (min-width: 901px) {
+    body {
+        overflow: hidden;
+    }
 }
 
 /* Animated Background */
 .background-animation {
-    position: absolute;
+    position: fixed;
     width: 100vw;
     height: 100vh;
     top: 0;
@@ -40,7 +44,7 @@ body {
 }
 
 .blob {
-    position: absolute;
+    position: fixed;
     filter: blur(80px);
     opacity: 0.5;
     animation: float 20s infinite ease-in-out alternate;
@@ -225,7 +229,7 @@ nav {
 }
 
 .viewer-overlay {
-    position: absolute;
+    position: fixed;
     bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
@@ -241,7 +245,7 @@ nav {
 
 /* Loading Spinner */
 .loading-spinner {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -282,8 +286,15 @@ nav {
 
 /* Responsive */
 @media (max-width: 900px) {
+    body {
+        overflow-y: auto;
+        height: auto;
+    }
+
     .app-container {
         flex-direction: column;
+        height: auto;
+        min-height: 100vh;
     }
     
     .sidebar {
@@ -299,4 +310,52 @@ nav {
     .nav-btn {
         white-space: nowrap;
     }
+
+    .viewer-area {
+        min-height: 500px;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+/* Atom Legend */
+.atom-legend {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 16px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 10;
+    pointer-events: none; /* Let clicks pass through to viewer */
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.atom-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.atom-color.carbon {
+    background-color: #909090; /* Jmol color for Carbon */
+}
+
+.atom-color.hydrogen {
+    background-color: #FFFFFF; /* Jmol color for Hydrogen */
 }
