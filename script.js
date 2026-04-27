@@ -31,7 +31,23 @@ let viewer = null;
 document.addEventListener("DOMContentLoaded", () => {
     initViewer();
     setupNavigation();
-    loadMolecule('benzene');
+
+    // Check for URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const moleculeParam = urlParams.get('molecule');
+
+    let defaultMol = 'benzene';
+    if (moleculeParam && moleculeData[moleculeParam]) {
+        defaultMol = moleculeParam;
+
+        // Update active class on navigation buttons
+        const buttons = document.querySelectorAll('.nav-btn');
+        buttons.forEach(b => b.classList.remove('active'));
+        const targetBtn = document.querySelector(`.nav-btn[data-molecule="${defaultMol}"]`);
+        if(targetBtn) targetBtn.classList.add('active');
+    }
+
+    loadMolecule(defaultMol);
 });
 
 function initViewer() {
